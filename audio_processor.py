@@ -1,17 +1,23 @@
-import numpy as np
 import librosa
+import numpy as np
+import os
 
-def extract_features(file_path, n_mfcc=13):
-    """
-    Extrait des caractéristiques MFCC à partir d'un fichier audio.
-    """
-    y, sr = librosa.load(file_path, sr=None)
-    mfcc = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=n_mfcc)
-    mfcc_mean = np.mean(mfcc.T, axis=0)  # Moyenne des coefficients
-    return mfcc_mean
+def extract_features(file_path):
+    # Charger l'audio
+    audio, sample_rate = librosa.load(file_path, sr=16000, mono=True)
+    # Extraire les MFCC (Mel Frequency Cepstral Coefficients)
+    mfccs = librosa.feature.mfcc(y=audio, sr=sample_rate, n_mfcc=40)
+    return np.mean(mfccs.T, axis=0)
 
-# Test de traitement
-if __name__ == "__main__":
-    features = extract_features("data/user_sample.wav")
-    print("Caractéristiques audio extraites :")
-    print(features)
+def load_data(data_path):
+    X, y = [], []
+    for user_dir in os.listdir(data_path):
+        user_path = os.path.join(data_path, user_dir)
+        if os.path.isdir(user_path):
+            for file in os.listdir(user_path):
+                file_path = os.path.join(user_path, file)
+                if file.endswith('.wav'):
+                    features = extract_features(file_path)
+                    X.append(features)
+                    y.append(user_dir)
+    return np.array(X), np.array(y)

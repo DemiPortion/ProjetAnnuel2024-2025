@@ -1,34 +1,25 @@
-import os
-import numpy as np
-from sklearn.neighbors import KNeighborsClassifier
-from joblib import dump, load
-from audio_processor import extract_features
+from sklearn.svm import SVC
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import classification_report
+from joblib import dump
+import audio_processor
 
-def train_model(data_folder="data", model_path="voice_model.joblib"):
-    """
-    Entraîne un modèle KNN sur des échantillons vocaux.
-    """
-    X = []
-    y = []
+def train_model():
+    # Charger les données
+    X, y = audio_processor.load_data("data/")
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-    for label in os.listdir(data_folder):
-        label_path = os.path.join(data_folder, label)
-        if os.path.isdir(label_path):
-            for file in os.listdir(label_path):
-                if file.endswith(".wav"):
-                    file_path = os.path.join(label_path, file)
-                    features = extract_features(file_path)
-                    X.append(features)
-                    y.append(label)
-    
-    # Entraînement du modèle KNN
-    knn = KNeighborsClassifier(n_neighbors=3)
-    knn.fit(X, y)
-    
-    # Sauvegarde du modèle
-    dump(knn, model_path)
-    print(f"Modèle sauvegardé sous {model_path}")
+    # Entraîner un modèle SVM
+    model = SVC(kernel='linear', probability=True)
+    model.fit(X_train, y_train)
 
-# Test d'entraînement
+    # Évaluer le modèle
+    y_pred = model.predict(X_test)
+    print(classification_report(y_test, y_pred))
+
+    # Sauvegarder le modèle
+    dump(model, "voice_model.joblib")
+    print("Model saved to voice_model.joblib")
+
 if __name__ == "__main__":
     train_model()

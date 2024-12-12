@@ -1,23 +1,16 @@
 import sounddevice as sd
-import wave
+from scipy.io.wavfile import write
 import os
 
-def record_voice(filename="sample.wav", duration=5, sample_rate=44100):
-    print(f"Enregistrement en cours... Parlez pendant {duration} secondes.")
-    recording = sd.rec(int(duration * sample_rate), samplerate=sample_rate, channels=1, dtype='int16')
-    sd.wait()  # Attend la fin de l'enregistrement
-    
-    # Sauvegarde du fichier audio
-    with wave.open(filename, 'wb') as wf:
-        wf.setnchannels(1)  # Mono
-        wf.setsampwidth(2)  # 16 bits
-        wf.setframerate(sample_rate)
-        wf.writeframes(recording.tobytes())
-    
-    print(f"Échantillon vocal enregistré sous {filename}")
+def record_audio(output_file, duration=5, sample_rate=16000):
+    print(f"Recording for {duration} seconds...")
+    audio_data = sd.rec(int(duration * sample_rate), samplerate=sample_rate, channels=1, dtype='int16')
+    sd.wait()  # Wait for the recording to finish
+    write(output_file, sample_rate, audio_data)
+    print(f"Recording saved to {output_file}")
 
-# Test d'enregistrement
 if __name__ == "__main__":
-    if not os.path.exists("data"):
-        os.makedirs("data")
-    record_voice(filename="data/user_sample.wav", duration=5)
+    user = input("Enter the user name (e.g., user1, user2): ")
+    os.makedirs(f"data/{user}", exist_ok=True)
+    filename = f"data/{user}/sample.wav"
+    record_audio(filename)
