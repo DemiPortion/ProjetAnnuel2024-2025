@@ -1,6 +1,7 @@
 from joblib import load
 import audio_processor
 import voice_recorder
+import os  # Import manquant ajouté
 
 def recognize_user():
     # Charger le modèle
